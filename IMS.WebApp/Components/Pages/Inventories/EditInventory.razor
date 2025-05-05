@@ -1,0 +1,74 @@
+﻿@page "/editinventory/{invId:int}"
+
+@inject NavigationManager NavigationManager
+@inject IViewInventoryByIdUseCase ViewInventoryByIdUseCase
+@inject IEditInventoryUseCase EditInventoryUseCase
+
+<h3>编辑库存</h3>
+<br />
+
+@if (this.inventory is not null)
+{
+    <EditForm Model="inventory" FormName="formInventory" OnValidSubmit="Update">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        @* <ValidationSummary></ValidationSummary> *@
+
+        <InputNumber @bind-Value="inventory.InventoryId" hidden></InputNumber>
+
+        <div class="mb-3">
+            <label for="name">库存名称</label>
+            <InputText id="name"
+            @bind-Value="inventory.InventoryName"
+            class="form-control">
+            </InputText>
+            <ValidationMessage For="() => inventory.InventoryName"></ValidationMessage>
+        </div>
+
+        <div class="mb-3">
+            <label for="quantity">数量</label>
+            <InputNumber id="quantity"
+            @bind-Value="inventory.Quantity"
+            class="form-control">
+            </InputNumber>
+            <ValidationMessage For="() => inventory.Quantity"></ValidationMessage>
+        </div>
+
+        <div class="mb-3">
+            <label for="price">单价</label>
+            <InputNumber id="price"
+            @bind-Value="inventory.Price"
+            class="form-control">
+            </InputNumber>
+            <ValidationMessage For="() => inventory.Price"></ValidationMessage>
+        </div>
+
+        <br />
+        <button type="submit" class="btn btn-primary">更新</button>
+        &nbsp;
+        <a href="/inventories" class="btn btn-primary">返回</a>
+
+    </EditForm>
+}
+
+@code {
+
+    [Parameter]
+    public int InvId { get; set; }
+
+    [SupplyParameterFromForm]
+    private Inventory? inventory { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        this.inventory ??= await ViewInventoryByIdUseCase.ExecuteAsync(this.InvId);
+    }
+
+    private async Task Update()
+    {
+        if (inventory is not null)
+        {
+            await EditInventoryUseCase.ExecuteAsync(inventory);
+            NavigationManager.NavigateTo("/inventories");
+        }
+    }
+}

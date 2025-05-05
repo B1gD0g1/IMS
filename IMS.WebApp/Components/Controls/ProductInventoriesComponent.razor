@@ -1,0 +1,63 @@
+﻿
+
+<div class="card">
+    <div class="card-body">
+        <SearchProductInventoriesComponent OnInventorySelected="HandleInvenotorySelected"></SearchProductInventoriesComponent>
+
+        @if (
+            this.Product is not null &&
+            this.Product.ProductInventories is not null &&
+            this.Product.ProductInventories.Count > 0
+        )
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>数量</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var proInventory in this.Product.ProductInventories)
+                    {
+                        <tr>
+                            <td>
+                                @proInventory.Inventory?.InventoryName
+                            </td>
+                            <td>
+                                <input type="number" min="0" @bind-value="proInventory.InventoryQuantity" />
+                            </td>
+                            <td>
+                                <button type="button"
+                                        class="btn btn-link"
+                                        @onclick="() => RemoveInventory(proInventory)">
+                                    移除
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public Product? Product { get; set; }
+
+
+    private void RemoveInventory(ProductInventory productInventory)
+    {
+        this.Product?.RemoveInventory(productInventory);
+    }
+
+    private void HandleInvenotorySelected(Inventory inventory)
+    {
+        this.Product?.AddInventory(inventory);
+    }
+}
