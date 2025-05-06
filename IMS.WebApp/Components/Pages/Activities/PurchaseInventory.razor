@@ -2,17 +2,20 @@
 
 @using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent
 
+@rendermode InteractiveServer
+
+@inject IJSRuntime JSRuntime
+
 @inject IViewInventoriesByNameUseCase ViewInventoriesByNameUseCase
 @inject IViewInventoryByIdUseCase ViewInventoryByIdUseCase
 @inject IPurchaseInventoryUseCase PurchaseInventoryUseCase
 
-@rendermode InteractiveServer
 
 
 <h3>采购库存</h3>
 <br />
 
-<EditForm Model="purchaseViewModel" OnValidSubmit="Purchase">
+<EditForm id="purchase-form" Model="purchaseViewModel" OnValidSubmit="Purchase">
     <DataAnnotationsValidator></DataAnnotationsValidator>
     <ValidationSummary></ValidationSummary>
 
@@ -25,14 +28,15 @@
     <div class="card">
         <div class="card-body">
             <div class="mb-1">
-                <AutoCompleteComponent Label="采购库存"
-                SearchFunction="SearchInventory"
-                OnItemSelected="HandleItemSelected">
+                <AutoCompleteComponent Label="采购的库存"
+                                       SearchFunction="SearchInventory"
+                                       OnItemSelected="HandleItemSelected">
                 </AutoCompleteComponent>
                 @if (purchaseViewModel.InventoryPrice > 0)
                 {
                     <text>价格：</text>
-                    @purchaseViewModel.InventoryPrice.ToString("c");
+                    @purchaseViewModel.InventoryPrice.ToString("c")
+                    ;
                 }
             </div>
         </div>
@@ -42,8 +46,8 @@
     <div class="mb-1">
         <label for="qty">数量</label>
         <InputNumber id="qty"
-        @bind-Value="purchaseViewModel.QuantityToPurchase" 
-        class="form-control"></InputNumber>
+                     @bind-Value="purchaseViewModel.QuantityToPurchase"
+                     class="form-control"></InputNumber>
     </div>
     <br />
 
@@ -58,10 +62,20 @@
 
     private Inventory? selectedInventory = null;
 
-    private List<ItemViewModel>? SearchInventory(string name)
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            JSRuntime.InvokeVoidAsync("preventFormSubmission", "purchase-form");
+        }
+    }
+
+    private async Task<List<ItemViewModel>?> SearchInventory(string name)
     {
         // 调用用例服务获取数据
-        var list = ViewInventoriesByNameUseCase.ExecuteAsync(name).GetAwaiter().GetResult();
+        var list = await ViewInventoriesByNameUseCase.ExecuteAsync(name);
 
         if (list is null) return null;
 
