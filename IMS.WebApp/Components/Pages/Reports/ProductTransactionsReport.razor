@@ -1,0 +1,129 @@
+﻿@page "/productreport"
+
+@rendermode InteractiveServer
+
+@inject IJSRuntime JSRuntime
+@inject ISearchProductTransactionsUseCase SearchProductTransactionsUseCase
+
+<h3>产品交易记录</h3>
+<br />
+
+<div id="printarea">
+    <div class="row">
+        <div class="col">
+            <label for="prod">库存名称</label>
+            <input type="text" id="prod" class="form-control" @bind-value="prodName" />
+        </div>
+
+        <div class="col">
+            <label for="sd">起始日期</label>
+            <input type="date" id="sd" class="form-control" @bind-value="startDate" placeholder="YYYY/MM/DD" />
+        </div>
+
+        <div class="col">
+            <label for="ed">结束日期</label>
+            <input type="date" id="ed" class="form-control" @bind-value="endDate" placeholder="YYYY/MM/DD" />
+        </div>
+
+        <div class="col">
+            <label for="at">交易类型</label>
+            <select id="at" class="form-control" @bind="activityTypeId">
+                <option value="0"></option>
+                <option value="1">生产产品</option>
+                <option value="2">销售产品</option>
+            </select>
+        </div>
+
+        <div class="col">
+            <label>&nbsp;</label>
+            <button type="button"
+                    class="btn btn-primary form-control"
+                    @onclick="SearchProductTransactions">
+                搜索
+            </button>
+        </div>
+
+        <div class="col">
+            <label>&nbsp;</label>
+            <button type="button"
+                    class="btn btn-primary form-control"
+                    @onclick="Print">
+                打印
+            </button>
+        </div>
+    </div>
+    <br />
+
+    @if (productTransactions is not null && productTransactions.Count() > 0)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>库存名称</th>
+                    <th>交易类型</th>
+                    <th>交易前数量</th>
+                    <th>交易后数量</th>
+                    <th>单价</th>
+                    <th>销售订单号</th>
+                    <th>生产订单号</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var pt in productTransactions)
+                {
+                    <tr>
+                        <td>@pt.TransactionDate.ToString("MM/dd/yyyy")</td>
+                        <td>@pt.Product.ProductName</td>
+                        <td>
+                            @if (pt.ActivityType == ProductTransactionType.ProduceProduct)
+                            {
+                                <text>生产</text>
+                            }
+                            else if (pt.ActivityType == ProductTransactionType.SellProduct)
+                            {
+                                <text>销售</text>
+                            }
+                        </td>
+                        <td>@pt.QuantityBefore</td>
+                        <td>@pt.QuantityAfter</td>
+                        <td>@pt.UnitPrice?.ToString("c")</td>
+                        <td>@pt.SONumber</td>
+                        <td>@pt.ProductionNumber</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+</div>
+
+
+@code {
+    private string prodName;
+    private DateTime? startDate;
+    private DateTime? endDate;
+    private int activityTypeId;
+    private IEnumerable<ProductTransaction>? productTransactions;
+
+
+    private async Task SearchProductTransactions()
+    {
+        ProductTransactionType? prodType = null;
+        if (activityTypeId != 0) prodType = (ProductTransactionType)activityTypeId;
+
+        productTransactions = await this.SearchProductTransactionsUseCase.ExecuteAsync
+        (
+            prodName,
+            startDate,
+            endDate,
+            prodType
+        );
+    }
+
+    private async Task Print()
+    {
+        await JSRuntime.InvokeVoidAsync("print");
+    }
+}
