@@ -2,10 +2,11 @@
 
 @page "/sell"
 
-@attribute [Authorize]
+@attribute [Authorize(Policy = "Sales")]
 
 @rendermode InteractiveServer
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 
 @inject IViewProductsByNameUseCase ViewProductsByNameUseCase
@@ -63,6 +64,14 @@
 
     private Product? selectedProduct;
 
+    private AuthenticationState? authenState;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        authenState = await this.AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
@@ -97,12 +106,20 @@
 
     private async Task Sell()
     {
+        string userName = string.Empty;
+
+        if (authenState?.User?.Identity?.IsAuthenticated ?? false)
+        {
+            userName = authenState.User.Identity.Name ?? string.Empty;
+        }
+
         await SellProductUseCase.ExecuteAsync(
             this.sellViewModel.SalesOrderNumber,
             this.sellViewModel.Product,
             this.sellViewModel.QuantityToSell,
             this.sellViewModel.UnitPrice,
-            "Ben");
+            userName
+        );
 
         this.sellViewModel = new SellViewModel();
         this.selectedProduct = null;

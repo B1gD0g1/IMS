@@ -65,6 +65,8 @@
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
+    
+
     public async Task RegisterUser(EditContext editContext)
     {
         var user = CreateUser();

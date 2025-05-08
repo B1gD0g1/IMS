@@ -1,11 +1,12 @@
 ﻿@page "/produce"
 
-@attribute [Authorize]
+@attribute [Authorize(Policy = "Productions")]
 
 @using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent
 
 @rendermode InteractiveServer
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 
 @inject IViewProductsByNameUseCase ViewProductsByNameUseCase
@@ -55,6 +56,14 @@
 
     private Product? selectedProduct;
 
+    private AuthenticationState? authenState;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        authenState = await this.AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
@@ -88,11 +97,18 @@
 
     private async Task Produce()
     {
+        string userName = string.Empty;
+
+        if (authenState?.User?.Identity?.IsAuthenticated ?? false)
+        {
+            userName = authenState.User.Identity.Name ?? string.Empty;
+        }
+
         await ProduceProductUseCase.ExecuteAsync(
             this.produceViewModel.ProductionNumber,
             selectedProduct,
             this.produceViewModel.QuantityToProduce,
-            "Ben"
+            userName
         );
 
         this.produceViewModel = new ProduceViewModel();
