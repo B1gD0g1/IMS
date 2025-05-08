@@ -32,7 +32,7 @@
     public EventCallback<Inventory> OnInventorySelected { get; set; }
 
 
-    private string _searchFilter;
+    private string _searchFilter = string.Empty;
     private string searchFilter
     {
         get => _searchFilter;
@@ -48,7 +48,7 @@
     private async Task HandleSearch()
     {
         await Task.Delay(1000); //模拟一个相对较长的数据库调用
-        inventories = (await ViewInventoriesByNameUseCase.ExecuteAsync(searchFilter)).ToList();
+        inventories = (await ViewInventoriesByNameUseCase.ExecuteAsync(this.searchFilter)).ToList();
 
         StateHasChanged();
     }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IMS.CoreBusiness
 {
-    public class Inventory
+    public class InventoryViewModel
     {
         public int InventoryId { get; set; }
 
@@ -16,8 +16,6 @@ namespace IMS.CoreBusiness
 
         [Range(0, int.MaxValue, ErrorMessage = "单价必须大于或等于零。")]
         public double Price { get; set; }
-
-        [Product_EnsurePriceIsGreaterThanInventoriesCost]
-        public List<ProductInventory> ProductInventories { get; set; } = new List<ProductInventory>();
+       
     }
 }
